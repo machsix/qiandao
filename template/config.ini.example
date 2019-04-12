@@ -1,0 +1,11 @@
+[ADMIN]
+EMAIL = admin@example.com
+PASSWORD = example
+
+[SERVER]
+IP = 127.0.0.1:80
+PROTCOL = http
+
+[REPO]
+IP = qiandao.today
+PROTCOL = https
