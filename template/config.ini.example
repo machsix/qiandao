@@ -9,3 +9,4 @@ PROTCOL = http
 [REPO]
 IP = qiandao.today
 PROTCOL = https
+TYPE = public

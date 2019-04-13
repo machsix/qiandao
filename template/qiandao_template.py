@@ -36,9 +36,10 @@ def ens2har(ens):
         if 'cookies' in en['request'].keys():
             r['cookies'] = [{'name': x['name'], 'value': x['value']} for x in en['request']['cookies'] if x['checked']]
         if 'postData' in en['request'].keys():
-            r['data'] = en['request']['postData']['text']
-            r['mimeType'] = en['request']['postData']['mimeType']
-
+            if 'text' in en['request']['postData'].keys():
+                r['data'] = en['request']['postData']['text']
+            if 'mimeType' in en['request']['postData'].keys():
+                r['mimeType'] = en['request']['postData']['mimeType']
         ru = {
             'success_asserts': en['success_asserts'],
             'failed_asserts': en['failed_asserts'],
@@ -75,23 +76,31 @@ def writeHAR(tpls, path):
     return hars, envs
 
 
-def downloadTPL(repourl, verbose=True):
+def downloadTPL(repourl, public=True, verbose=True):
     # download tpl from repourl
-    url = urljoin(repourl, '/tpls/public')
+    if public:
+        url = urljoin(repourl, '/tpls/public')
+    else:
+        url = urljoin(repourl, '/my/')
+
     r = SESSION.get(url)
     xml = lxml.html.fromstring(r.text)
     name = xml.xpath("//div[@class='container']/table/tbody/tr/td[1]/span/text()")
+    name.reverse()  # put oldest rule ahead
+
     tpl = [{'id':i+1, 'name': val, 'filename': None} for i,val in enumerate(name)]
+
     for i in range(len(name)):
-        tpl[i]['link'] = ''.join(xml.xpath("//div[@class='container']/table/tbody[1]/tr[{:d}]/td[1]/text()".format(i+1)))
+        j = len(name) - i
+        tpl[i]['link'] = ''.join(xml.xpath("//div[@class='container']/table/tbody[1]/tr[{:d}]/td[1]/text()".format(j)))
         d = re.findall("-\\s*([^\\s]+)", tpl[i]['link'])
         if d:
             tpl[i]['link'] = d[0]
         else:
             tpl[i]['link'] = ''
-        tpl[i]['createDate'] = ''.join(xml.xpath("//div[@class='container']/table/tbody[1]/tr[{:d}]/td[2]/text()".format(i+1))).strip()
-        tpl[i]['lastUpdate'] = ''.join(xml.xpath("//div[@class='container']/table/tbody[1]/tr[{:d}]/td[3]/text()".format(i+1))).strip()
-        tplLink = urljoin(repourl,xml.xpath("//div[@class='container']/table/tbody[1]/tr[{:d}]/td[5]/a[1]/@href".format(i+1))[0])
+        tpl[i]['createDate'] = ''.join(xml.xpath("//div[@class='container']/table/tbody[1]/tr[{:d}]/td[2]/text()".format(j))).strip()
+        tpl[i]['lastUpdate'] = ''.join(xml.xpath("//div[@class='container']/table/tbody[1]/tr[{:d}]/td[3]/text()".format(j))).strip()
+        tplLink = urljoin(repourl,xml.xpath("//div[@class='container']/table/tbody[1]/tr[{:d}]/td[5]/a[1]/@href".format(j))[0])
         tpl[i]['tplLink'] = tplLink
         r2 = SESSION.post(tplLink, headers={'referer': tplLink})
         if r2.ok:
@@ -156,26 +165,29 @@ if __name__ == "__main__":
     conf = parseArg(ARGS)
 
     # get cookie
-    if conf['upload']:
+    if conf['upload'] or (conf['update'] and conf['REPO']['type'] != 'public'):
         # login to server
         SESSION.cookies.clear()
-        req = SESSION.post(urljoin(conf['server'],'/login'), data={
-            'email': conf['ADMIN']['email'],
-            'password': conf['ADMIN']['password']
-            })
+        req = SESSION.post(urljoin(conf['server'],'/login'), data={'email': conf['ADMIN']['email'],'password': conf['ADMIN']['password']})
         if 'user' not in SESSION.cookies.get_dict().keys():
             raise IOError('Fail to login to {:s}'.format(conf['server']))
 
     # download tpl from repo and write it to a folder
     # or load from db
     if conf['update']:
-        tpl = downloadTPL(conf['repo'], verbose=False)
+        print('start fetching')
+        print('{:s}  {:s} REPO'.format(conf['repo'], conf['REPO']['type']))
+        if conf['REPO']['type'] == 'public':
+            tpl = downloadTPL(conf['repo'], verbose=True)
+        else:
+            tpl = downloadTPL(conf['repo'], public=False, verbose=True)
         with open(conf['db'], 'w', encoding='utf-8') as f:
             json.dump(tpl, f, indent=2, ensure_ascii=False)
         har,env = writeHAR(tpl, conf['dir'])
     else:
         with open(conf['db'], 'r', encoding='utf-8') as f:
             tpl = json.load(f)
+        har,env = writeHAR(tpl, conf['dir'])
 
     if conf['upload']:
         uploadTPL(tpl, conf['server'], verbose=True)
