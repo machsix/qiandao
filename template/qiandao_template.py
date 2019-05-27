@@ -85,22 +85,27 @@ def downloadTPL(repourl, public=True, verbose=True):
 
     r = SESSION.get(url)
     xml = lxml.html.fromstring(r.text)
-    name = xml.xpath("//div[@class='container']/table/tbody/tr/td[1]/span/text()")
+    if public:
+        prefix = "//div[@class='container']"
+    else:
+        prefix = "//section[@class='tpl']/div[@class='container']"
+    name = xml.xpath("{:s}/table/tbody/tr/td[1]/span/text()".format(prefix))
     name.reverse()  # put oldest rule ahead
 
     tpl = [{'id':i+1, 'name': val, 'filename': None} for i,val in enumerate(name)]
 
     for i in range(len(name)):
         j = len(name) - i
-        tpl[i]['link'] = ''.join(xml.xpath("//div[@class='container']/table/tbody[1]/tr[{:d}]/td[1]/text()".format(j)))
+        print(j)
+        tpl[i]['link'] = ''.join(xml.xpath("{:s}/table/tbody[1]/tr[{:d}]/td[1]/text()".format(prefix, j)))
         d = re.findall("-\\s*([^\\s]+)", tpl[i]['link'])
         if d:
             tpl[i]['link'] = d[0]
         else:
             tpl[i]['link'] = ''
-        tpl[i]['createDate'] = ''.join(xml.xpath("//div[@class='container']/table/tbody[1]/tr[{:d}]/td[2]/text()".format(j))).strip()
-        tpl[i]['lastUpdate'] = ''.join(xml.xpath("//div[@class='container']/table/tbody[1]/tr[{:d}]/td[3]/text()".format(j))).strip()
-        tplLink = urljoin(repourl,xml.xpath("//div[@class='container']/table/tbody[1]/tr[{:d}]/td[5]/a[1]/@href".format(j))[0])
+        tpl[i]['createDate'] = ''.join(xml.xpath("{:s}/table/tbody[1]/tr[{:d}]/td[2]/text()".format(prefix, j))).strip()
+        tpl[i]['lastUpdate'] = ''.join(xml.xpath("{:s}/table/tbody[1]/tr[{:d}]/td[3]/text()".format(prefix, j))).strip()
+        tplLink = urljoin(repourl,xml.xpath("{:s}/table/tbody[1]/tr[{:d}]/td[5]/a[1]/@href".format(prefix, j))[0])
         tpl[i]['tplLink'] = tplLink
         r2 = SESSION.post(tplLink, headers={'referer': tplLink})
         if r2.ok:
@@ -167,6 +172,7 @@ if __name__ == "__main__":
     # get cookie
     if conf['upload'] or (conf['update'] and conf['REPO']['type'] != 'public'):
         # login to server
+        print("Try to login")
         SESSION.cookies.clear()
         req = SESSION.post(urljoin(conf['server'],'/login'), data={'email': conf['ADMIN']['email'],'password': conf['ADMIN']['password']})
         if 'user' not in SESSION.cookies.get_dict().keys():
