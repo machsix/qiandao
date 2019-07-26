@@ -12,5 +12,5 @@ RUN apk update \
 ENV PORT 80
 EXPOSE $PORT/tcp
 # 添加挂载点
-VOLUME ["/usr/src/app/"]
+VOLUME ["/usr/src/app/database"]
 CMD ["python","/usr/src/app/run.py"]

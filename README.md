@@ -20,8 +20,12 @@
 
 ***
 
-### Mydocker
+### My docker
 https://cloud.docker.com/repository/docker/machsix/qiandao
+
+To keep the persistence of your database, place `database.db` in folder `/usr/src/app/database/database.db`
+
+Then mount the folder `/usr/src/app/database/` to the host machine.
 
 ### 一、Linux安装Docker
 1. 国内主机安装Docker

@@ -3,7 +3,7 @@
 import requests
 import lxml
 import lxml.html
-import re, os, json
+import re, os, json, glob
 from urllib.parse import urljoin
 import configparser
 import argparse
@@ -164,6 +164,7 @@ if __name__ == "__main__":
     parser.add_argument('--db', default='database.json', help='database of tpl file (default: %(default)s)')
     parser.add_argument('-d', '--dir', default=os.getcwd(), help='directory to save har/env (default: %(default)s')
     parser.add_argument('-u', '--update', action='store_true', help='update database')
+    parser.add_argument('--rw', action='store_true', help='rewrite database.json')
     parser.add_argument('--upload', action='store_true', help='upload to server (you must have config.ini set first)')
     ARGS = parser.parse_args()
 
@@ -190,6 +191,25 @@ if __name__ == "__main__":
         with open(conf['db'], 'w', encoding='utf-8') as f:
             json.dump(tpl, f, indent=2, ensure_ascii=False)
         har,env = writeHAR(tpl, conf['dir'])
+    # elif conf['rw']:
+    #     # load old db
+    #     with open(conf['db'], 'r') as f:
+    #         db = json.load(f)
+    #     sites = [i["filename"] for i in db]
+
+    #     # load tpl
+    #     for file in glob.glob("har/*.har"):
+    #         filename = os.path.basename(file)[:-4]
+    #         with open(file, 'r', encoding='utf-8') as f:
+    #             tpl = json.load(f)
+    #         with open('env/{:s}.json'.format(filename), 'r', encoding='utf-8') as f:
+    #             env = json.load(f)
+    #         if filename in sites:
+
+
+
+    #     with open(conf['db'], 'w', encoding='utf-8') as f:
+    #         json.dump(tpl, f, indent=2, ensure_ascii=False)
     else:
         with open(conf['db'], 'r', encoding='utf-8') as f:
             tpl = json.load(f)
