@@ -40,11 +40,12 @@ def ens2har(ens):
                 r['data'] = en['request']['postData']['text']
             if 'mimeType' in en['request']['postData'].keys():
                 r['mimeType'] = en['request']['postData']['mimeType']
-        ru = {
-            'success_asserts': en['success_asserts'],
-            'failed_asserts': en['failed_asserts'],
-            'extract_variables': en['extract_variables']
-        }
+
+        key = ['success_asserts', 'failed_asserts', 'extract_variables']
+        ru = {}
+        for i in key:
+            if i in en:
+                ru[i] = en[i]
 
         har.append({'request': r, 'rule': ru})
     return har
