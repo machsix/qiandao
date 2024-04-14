@@ -1,7 +1,5 @@
 *.idea
 *.pyc
 database.db
-.python-version
-__pycache__
-template/config.ini
-.vscode
+mysql
+local_config.py

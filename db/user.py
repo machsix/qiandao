@@ -11,7 +11,7 @@ import umsgpack
 
 import config
 from libs import mcrypto as crypto, utils
-from basedb import BaseDB
+from .basedb import BaseDB
 
 logger = logging.getLogger('qiandao.userdb')
 class UserDB(BaseDB):
@@ -35,7 +35,7 @@ class UserDB(BaseDB):
 
     @staticmethod
     def check_nickname(nickname):
-        if isinstance(nickname, unicode):
+        if isinstance(nickname, str):
             nickname = nickname.encode('utf8')
         return len(nickname) < 64
 
