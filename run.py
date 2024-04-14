@@ -13,6 +13,7 @@ from tornado.httpserver import HTTPServer
 import config
 from web.app import Application
 from worker import MainWorker
+import docker_setup
 
 if __name__ == "__main__":
     # init logging
@@ -32,6 +33,8 @@ if __name__ == "__main__":
         port = int(sys.argv[2])
     else:
         port = config.port
+
+    docker_setup.main()
 
     http_server = HTTPServer(Application(), xheaders=True)
     http_server.bind(port, config.bind)

@@ -44,7 +44,7 @@ class UserDB(BaseDB):
             raise self.DeplicateUser('duplicate username')
 
         now = time.time()
-        if isinstance(ip, basestring):
+        if isinstance(ip, str):
             ip = utils.ip2int(ip)
         userkey = umsgpack.unpackb(crypto.password_hash(password))[0]
 

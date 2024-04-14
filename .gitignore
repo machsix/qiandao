@@ -1,5 +1,6 @@
 *.idea
 *.pyc
+.venv
 database.db
 mysql
 local_config.py
