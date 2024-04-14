@@ -97,8 +97,6 @@ def add_tpl(file="template/database.json"):
 def main():
     if 'ADMIN_EMAIL' in os.environ:
         set_admin()
-        db_path_set = config.sqlite3.path + '.set'
-        if not os.path.isfile(db_path_set):
-            add_tpl()
-            with open(db_path_set, 'w') as f:
-                f.write('1\n')
+
+    if int(os.environ.get('UPDATE_TPL', '1')) == 1:
+        add_tpl()

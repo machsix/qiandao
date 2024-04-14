@@ -34,6 +34,8 @@ if __name__ == "__main__":
     else:
         port = config.port
 
+    if config.db_type == 'sqlite3':
+        config.sqlite3.init_file()
     docker_setup.main()
 
     http_server = HTTPServer(Application(), xheaders=True)
